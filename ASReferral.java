@@ -167,6 +167,11 @@ public class ASReferral {
 				JSONObject data = json.getJSONObject("data");
 				JSONArray campaigns = data.getJSONArray("campaigns");
 				if (campaigns.length() > 0) {
+					/*
+					 * Here we just grab the first campaign,
+					 * but we could write business logic to choose a specific campaign
+					 * TODO: provide example of server-side implementation of business logic
+					 */
 					url = campaigns.getJSONObject(0).getString("info_link");
 				}
 			}
@@ -190,6 +195,7 @@ public class ASReferral {
     		} else {
     			String message = "Sorry! There are currently no offers available.";
     			Log.i("AppSpin", message);
+    			
     			// Toast.makeText(context.getApplicationContext(), message, Toast.LENGTH_SHORT).show();
     			context = null;
     		}
