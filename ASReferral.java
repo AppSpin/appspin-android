@@ -9,6 +9,8 @@ package com.appspin.android.example;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -37,6 +39,7 @@ public class ASReferral {
 	
 	private Activity context;
 	private String campaignInfoURL;
+	private int	campaignID;
 	
 	// Constructor which accepts activity context of creator 
 	public ASReferral (Activity activity) {
@@ -74,7 +77,7 @@ public class ASReferral {
 					/*
 					 * If your app already has the user's contact info, you can generate affiliate
 					 * links on the fly via the API's "generate" endpoint
-					 * TODO: link to API docs
+					 * http://docs.appsp.in/#!/affiliate
 					 */
 					launchReward();
 				}
@@ -93,6 +96,21 @@ public class ASReferral {
 			
 		AlertDialog alertDialog = alertDialogBuilder.create();
 		alertDialog.show();
+		
+		if (campaignID != 0) {
+			// Fire pixel to track that this campaign was offered
+            String trackingPixel = APPSPIN_API_ENDPOINT + "offer?";
+            trackingPixel += "campaign_id=" + campaignID + "&";
+            trackingPixel += "token=" + APPSPIN_DEVELOPER_TOKEN;
+            
+			try {
+				@SuppressWarnings("unused")
+				InputStream pixelStream = (InputStream) new URL(trackingPixel).getContent();
+			} catch (Exception e) {
+				e.printStackTrace();
+				Log.e("AppSpin", "Campaign tracking pixel did not fire");
+			}
+		}
 				
 		return;
 	}
@@ -103,8 +121,8 @@ public class ASReferral {
     		 * Launch browser to display campaign details
     		 * 
     		 * If you want to display the details natively, you make make
-    		 * a request for JSON data via the API's "info" endpoint
-    		 * TODO: link to API docs
+    		 * a request for JSON data via the API's "campaigns" endpoint
+    		 * http://docs.appsp.in/#!/campaign
     		 */
     		Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(campaignInfoURL));
     		context.startActivity(browserIntent);
@@ -172,7 +190,9 @@ public class ASReferral {
 					 * but we could write business logic to choose a specific campaign
 					 * TODO: provide example of server-side implementation of business logic
 					 */
-					url = campaigns.getJSONObject(0).getString("info_link");
+					JSONObject campaign = campaigns.getJSONObject(0);
+					url = campaign.getString("info_link");
+					campaignID = campaign.getInt("id");
 				}
 			}
 		} catch (Exception e) {
